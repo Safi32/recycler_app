@@ -1,7 +1,6 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:recycler/utils/colors.dart';
-
-import 'package:recycler/views/household/weekly_performance_chart.dart';
 import 'package:recycler/widgets/settlement_card.dart';
 
 class Credits extends StatelessWidget {
