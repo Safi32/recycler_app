@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:recycler/utils/colors.dart';
-import 'package:recycler/widgets/bottom_bar.dart';
+import 'package:recycler/views/admin/waste_categories.dart';
+import 'package:recycler/views/driver/driver.dart';
+import 'package:recycler/views/household/bottom_bar.dart';
 import 'package:recycler/widgets/test_action_button.dart';
 class HomeScreen extends StatelessWidget {
 	const HomeScreen({super.key});
@@ -89,6 +91,7 @@ class HomeScreen extends StatelessWidget {
 										backgroundColor: AppColors.driverButton,
 										foregroundColor: Colors.black87,
 										onPressed: () {
+                      Get.to(() => const Driver());
 										},
 									),
 									const SizedBox(height: 12),
@@ -97,6 +100,7 @@ class HomeScreen extends StatelessWidget {
 										backgroundColor: AppColors.adminButton,
 										foregroundColor: Colors.white,
 										onPressed: () {
+                      Get.to(() => const WasteCategories());
 										},
 									),
 
