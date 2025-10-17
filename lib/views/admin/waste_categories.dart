@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:recycler/controllers/admin_dashboard_controller.dart';
+import 'package:recycler/controllers/auth_controller.dart';
 import 'package:recycler/controllers/waste_category_controller.dart';
-import 'package:recycler/views/admin/settings_screen.dart';
+
 import 'package:recycler/views/admin/settlement_screen.dart';
 import 'package:recycler/views/admin/users_screen.dart';
 
 class WasteCategoriesTab extends StatelessWidget {
-  const WasteCategoriesTab({super.key});
+  WasteCategoriesTab({super.key});
+  final authController = Get.find<AuthController>();
 
   @override
   Widget build(BuildContext context) {
@@ -42,8 +44,14 @@ class WasteCategoriesTab extends StatelessWidget {
         ),
         // Categories List
         Expanded(
-          child: Obx(
-            () => ListView.builder(
+          child: Obx(() {
+            if (controller.isLoading.value && controller.categories.isEmpty) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (controller.categories.isEmpty) {
+              return const Center(child: Text('No categories yet'));
+            }
+            return ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               itemCount: controller.categories.length,
               itemBuilder: (context, index) {
@@ -90,7 +98,8 @@ class WasteCategoriesTab extends StatelessWidget {
                                 const SizedBox(width: 8),
                                 IconButton(
                                   icon: const Icon(Icons.edit, size: 20),
-                                  onPressed: () => controller.editCategory(index),
+                                  onPressed: () =>
+                                      controller.editCategory(index),
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(),
                                 ),
@@ -118,8 +127,8 @@ class WasteCategoriesTab extends StatelessWidget {
                   ),
                 );
               },
-            ),
-          ),
+            );
+          }),
         ),
       ],
     );
@@ -127,7 +136,8 @@ class WasteCategoriesTab extends StatelessWidget {
 }
 
 class WasteCategories extends StatelessWidget {
-  const WasteCategories({super.key});
+    WasteCategories({super.key});
+   final authController = Get.find<AuthController>();
 
   @override
   Widget build(BuildContext context) {
@@ -135,10 +145,9 @@ class WasteCategories extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final List<Widget> screens = [
-      const WasteCategoriesTab(),  
-      const SettingsScreen(),
-      const UsersScreen(),
-      const SettlementsScreen(),
+      WasteCategoriesTab(),
+      UsersScreen(),
+      SettlementsScreen(),
     ];
 
     return Scaffold(
@@ -149,21 +158,20 @@ class WasteCategories extends StatelessWidget {
         ),
         title: const Text(
           'Admin Dashboard',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () {},
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              authController.logout();
+            },
           ),
         ],
       ),
       body: Obx(
         () => controller.currentIndex.value == 0
-            ? const WasteCategoriesTab()
+            ?   WasteCategoriesTab()
             : screens[controller.currentIndex.value],
       ),
       bottomNavigationBar: Obx(
@@ -175,14 +183,8 @@ class WasteCategories extends StatelessWidget {
               icon: Icon(Icons.category),
               label: 'Categories',
             ),
-            NavigationDestination(
-              icon: Icon(Icons.settings),
-              label: 'Settings',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.people),
-              label: 'Users',
-            ),
+
+            NavigationDestination(icon: Icon(Icons.people), label: 'Users'),
             NavigationDestination(
               icon: Icon(Icons.receipt_long),
               label: 'Settlements',

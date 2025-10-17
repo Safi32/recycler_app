@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
+import 'package:recycler/controllers/auth_controller.dart';
 import 'package:recycler/controllers/record_weight_controller.dart';
 import 'package:recycler/widgets/build_detail_row.dart';
+import 'package:recycler/modals/recycler_request.dart';
 
 class RecordWeight extends StatelessWidget {
-  final dynamic request;
+  final RecyclerRequest request;
 
-  const RecordWeight({super.key, required this.request});
+  RecordWeight({super.key, required this.request});
+  final authController = Get.find<AuthController>();
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(RecordWeightController());
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -21,6 +22,14 @@ class RecordWeight extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
         ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              authController.logout();
+            },
+            icon: Icon(Icons.logout),
+          ),
+        ],
         title: Text(
           'Request ${request.id}',
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
@@ -31,7 +40,7 @@ class RecordWeight extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Request Details Section
+            // --- Section: Request Details ---
             Text(
               'Request Details',
               style: theme.textTheme.titleLarge?.copyWith(
@@ -39,38 +48,26 @@ class RecordWeight extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
+
             Card(
+              color: Colors.black.withOpacity(0.05),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    buildDetailRow(
-                      'Status',
-                      request.status,
-                      theme,
-                      colorScheme,
-                    ),
+                    buildDetailRow('Status', request.status),
                     const SizedBox(height: 12),
-                    buildDetailRow(
-                      'Waste Type',
-                      request.wasteType,
-                      theme,
-                      colorScheme,
-                    ),
+                    buildDetailRow('Waste Type', request.wasteType),
                     const SizedBox(height: 12),
-                    buildDetailRow(
-                      'Pickup Date',
-                      request.pickupDate,
-                      theme,
-                      colorScheme,
-                    ),
+                    buildDetailRow('Pickup Date', request.pickupDate),
                   ],
                 ),
               ),
             ),
+
             const SizedBox(height: 24),
 
-            // Record Weight Section
+            // --- Section: Record Weight ---
             Text(
               'Record Weight',
               style: theme.textTheme.titleLarge?.copyWith(
@@ -79,12 +76,13 @@ class RecordWeight extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Weight Input
+            // --- Weight input field ---
             TextField(
               controller: controller.weightController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                hintText: 'Weight (kg)',
+                labelText: 'Weight (kg)',
+                hintText: 'Enter weight in kilograms',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -93,12 +91,12 @@ class RecordWeight extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Notes Input
+            // --- Notes input field ---
             TextField(
               controller: controller.notesController,
-              maxLines: 4,
+              maxLines: 3,
               decoration: InputDecoration(
-                hintText: 'Notes (optional)',
+                labelText: 'Notes (optional)',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -107,11 +105,23 @@ class RecordWeight extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Submit Button
+            // --- Submit Button ---
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () => controller.submitWeight(request.id),
+                onPressed: () {
+                  if (request.id.isEmpty) {
+                    Get.snackbar(
+                      'Error',
+                      'Request ID is missing. Cannot update record.',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.red.withOpacity(0.7),
+                      colorText: Colors.white,
+                    );
+                    return;
+                  }
+                  controller.submitWeight(request.id);
+                },
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(

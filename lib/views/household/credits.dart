@@ -1,15 +1,32 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:recycler/controllers/auth_controller.dart';
 import 'package:recycler/utils/colors.dart';
 import 'package:recycler/widgets/settlement_card.dart';
 
 class Credits extends StatelessWidget {
-  const Credits({super.key});
+  Credits({super.key});
+
+  final authController = Get.find<AuthController>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Recycler App'), elevation: 0),
+      appBar: AppBar(
+        title: const Text('Recycler App'),
+        elevation: 0,
+        actions: [
+          IconButton(
+            onPressed: () {
+              authController.logout();
+            },
+            icon: Icon(Icons.logout),
+          ),
+        ],
+      ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
@@ -81,17 +98,35 @@ class Credits extends StatelessWidget {
                   barTouchData: BarTouchData(enabled: false),
                   titlesData: FlTitlesData(
                     show: true,
-                    leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    topTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
                         getTitlesWidget: (value, meta) {
-                          final labels = ['10/06', '10/13', '10/20', '10/27', '09/29'];
+                          final labels = [
+                            '10/06',
+                            '10/13',
+                            '10/20',
+                            '10/27',
+                            '09/29',
+                          ];
                           final idx = value.toInt();
                           if (idx >= 0 && idx < labels.length) {
-                            return Text(labels[idx], style: const TextStyle(color: Colors.white70, fontSize: 10));
+                            return Text(
+                              labels[idx],
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 10,
+                              ),
+                            );
                           }
                           return const SizedBox.shrink();
                         },
@@ -99,14 +134,64 @@ class Credits extends StatelessWidget {
                       ),
                     ),
                   ),
-                  gridData: FlGridData(show: true, drawHorizontalLine: true, getDrawingHorizontalLine: (y) => FlLine(color: Colors.white12, strokeWidth: 0.5)),
+                  gridData: FlGridData(
+                    show: true,
+                    drawHorizontalLine: true,
+                    getDrawingHorizontalLine: (y) =>
+                        FlLine(color: Colors.white12, strokeWidth: 0.5),
+                  ),
                   borderData: FlBorderData(show: false),
                   barGroups: [
-                    BarChartGroupData(x: 0, barRods: [BarChartRodData(toY: 3.5, color: AppColors.recycleIcon, width: 16)]),
-                    BarChartGroupData(x: 1, barRods: [BarChartRodData(toY: 0, color: AppColors.recycleIcon, width: 16)]),
-                    BarChartGroupData(x: 2, barRods: [BarChartRodData(toY: 0, color: AppColors.recycleIcon, width: 16)]),
-                    BarChartGroupData(x: 3, barRods: [BarChartRodData(toY: 4.5, color: AppColors.recycleIcon, width: 16)]),
-                    BarChartGroupData(x: 4, barRods: [BarChartRodData(toY: 0, color: AppColors.recycleIcon, width: 16)]),
+                    BarChartGroupData(
+                      x: 0,
+                      barRods: [
+                        BarChartRodData(
+                          toY: 3.5,
+                          color: AppColors.recycleIcon,
+                          width: 16,
+                        ),
+                      ],
+                    ),
+                    BarChartGroupData(
+                      x: 1,
+                      barRods: [
+                        BarChartRodData(
+                          toY: 0,
+                          color: AppColors.recycleIcon,
+                          width: 16,
+                        ),
+                      ],
+                    ),
+                    BarChartGroupData(
+                      x: 2,
+                      barRods: [
+                        BarChartRodData(
+                          toY: 0,
+                          color: AppColors.recycleIcon,
+                          width: 16,
+                        ),
+                      ],
+                    ),
+                    BarChartGroupData(
+                      x: 3,
+                      barRods: [
+                        BarChartRodData(
+                          toY: 4.5,
+                          color: AppColors.recycleIcon,
+                          width: 16,
+                        ),
+                      ],
+                    ),
+                    BarChartGroupData(
+                      x: 4,
+                      barRods: [
+                        BarChartRodData(
+                          toY: 0,
+                          color: AppColors.recycleIcon,
+                          width: 16,
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
+import 'package:recycler/controllers/auth_controller.dart';
 import 'package:recycler/controllers/driver_controller.dart';
 
 class Driver extends StatelessWidget {
-  const Driver({super.key});
+  Driver({super.key});
+  final authController = Get.find<AuthController>();
 
   @override
   Widget build(BuildContext context) {
@@ -18,17 +20,17 @@ class Driver extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
         ),
+
         title: const Text(
           'Recycler App - Driver',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () {},
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              authController.logout();
+            },
           ),
         ],
       ),

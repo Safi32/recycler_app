@@ -12,24 +12,31 @@ class BottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final BottomBarController ctrl = Get.put(BottomBarController());
 
-    final pages = [
-      const RecyclingRequest(),
-      const Credits(),
-    ];
+    final pages = [RecyclingRequest(), Credits()];
 
     return Scaffold(
-      body: Obx(() => IndexedStack(index: ctrl.selectedIndex.value, children: pages)),
-      bottomNavigationBar: Obx(() => BottomNavigationBar(
-            currentIndex: ctrl.selectedIndex.value,
-            backgroundColor: AppColors.scaffoldBackground,
-            selectedItemColor: AppColors.recycleIcon,
-            unselectedItemColor: Colors.white70,
-            onTap: ctrl.setIndex,
-            items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.recycling), label: 'Recycling'),
-              BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: 'Balance'),
-            ],
-          )),
+      body: Obx(
+        () => IndexedStack(index: ctrl.selectedIndex.value, children: pages),
+      ),
+      bottomNavigationBar: Obx(
+        () => BottomNavigationBar(
+          currentIndex: ctrl.selectedIndex.value,
+          backgroundColor: AppColors.scaffoldBackground,
+          selectedItemColor: AppColors.recycleIcon,
+          unselectedItemColor: Colors.white70,
+          onTap: ctrl.setIndex,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.recycling),
+              label: 'Recycling',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.account_balance_wallet),
+              label: 'Balance',
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
