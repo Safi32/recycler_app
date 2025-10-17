@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -17,8 +18,8 @@ class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final RxString _role = 'Household'.obs;
   final RxBool _submitting = false.obs;
-
   final List<String> _roles = const ['Household', 'Driver', 'Admin'];
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   @override
   void dispose() {
@@ -36,22 +37,84 @@ class _SignupScreenState extends State<SignupScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-
-      await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set({
-        'name': _nameController.text.trim(),
-        'email': _emailController.text.trim(),
-        'role': _role.value.toLowerCase(),
-        'createdAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-
-      Get.snackbar('Success', 'Account created', snackPosition: SnackPosition.BOTTOM);
-      Get.offAllNamed('/home', arguments: {
-        'role': _role.value.toLowerCase(),
-        'uid': cred.user!.uid,
-      });
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(cred.user!.uid)
+          .set({
+            'name': _nameController.text.trim(),
+            'email': _emailController.text.trim(),
+            'role': _role.value.toLowerCase(),
+            'createdAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+      Get.snackbar(
+        'Success',
+        'Account created',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      Get.offAllNamed(
+        '/home',
+        arguments: {'role': _role.value.toLowerCase(), 'uid': cred.user!.uid},
+      );
     } on FirebaseAuthException catch (e) {
-      Get.snackbar('Sign up failed', e.message ?? e.code, snackPosition: SnackPosition.BOTTOM);
+      debugPrint('FirebaseAuthException: ${e.message}');
+      debugPrint('FirebaseAuthException code: ${e.code}');
+      Get.snackbar(
+        'Sign up failed',
+        e.message ?? e.code,
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } catch (e) {
+      debugPrint('Error during sign-up: $e');
+      Get.snackbar('Error', '$e', snackPosition: SnackPosition.BOTTOM);
+    } finally {
+      _submitting.value = false;
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    try {
+      _submitting.value = true;
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        debugPrint('Google Sign-In: User canceled the sign-in');
+        return;
+      }
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final OAuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      final UserCredential cred = await FirebaseAuth.instance
+          .signInWithCredential(credential);
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(cred.user!.uid)
+          .set({
+            'name': googleUser.displayName ?? '',
+            'email': googleUser.email,
+            'role': _role.value.toLowerCase(),
+            'createdAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+      Get.snackbar(
+        'Success',
+        'Account created',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      Get.offAllNamed(
+        '/home',
+        arguments: {'role': _role.value.toLowerCase(), 'uid': cred.user!.uid},
+      );
+    } on FirebaseAuthException catch (e) {
+      debugPrint('FirebaseAuthException during Google Sign-In: ${e.message}');
+      debugPrint('FirebaseAuthException code: ${e.code}');
+      Get.snackbar(
+        'Sign up failed',
+        e.message ?? e.code,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (e) {
+      debugPrint('Error during Google Sign-In: $e');
       Get.snackbar('Error', '$e', snackPosition: SnackPosition.BOTTOM);
     } finally {
       _submitting.value = false;
@@ -75,50 +138,93 @@ class _SignupScreenState extends State<SignupScreen> {
                 children: [
                   TextFormField(
                     controller: _nameController,
-                    decoration: const InputDecoration(labelText: 'Name', border: OutlineInputBorder()),
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your name' : null,
+                    decoration: const InputDecoration(
+                      labelText: 'Name',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'Enter your name'
+                        : null,
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _emailController,
-                    decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      border: OutlineInputBorder(),
+                    ),
                     keyboardType: TextInputType.emailAddress,
-                    validator: (v) => (v == null || !v.contains('@')) ? 'Enter a valid email' : null,
+                    validator: (v) => (v == null || !v.contains('@'))
+                        ? 'Enter a valid email'
+                        : null,
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _passwordController,
-                    decoration: const InputDecoration(labelText: 'Password', border: OutlineInputBorder()),
+                    decoration: const InputDecoration(
+                      labelText: 'Password',
+                      border: OutlineInputBorder(),
+                    ),
                     obscureText: true,
-                    validator: (v) => (v == null || v.length < 6) ? 'Min 6 characters' : null,
+                    validator: (v) =>
+                        (v == null || v.length < 6) ? 'Min 6 characters' : null,
                   ),
                   const SizedBox(height: 12),
-                  Obx(() => DropdownButtonFormField<String>(
-                        value: _role.value,
-                        items: _roles
-                            .map((r) => DropdownMenuItem<String>(value: r, child: Text(r)))
-                            .toList(),
-                        onChanged: (v) => _role.value = v ?? 'Household',
-                        decoration: const InputDecoration(
-                          labelText: 'Sign up as',
-                          border: OutlineInputBorder(),
-                        ),
-                      )),
+                  Obx(
+                    () => DropdownButtonFormField<String>(
+                      value: _role.value,
+                      items: _roles
+                          .map(
+                            (r) => DropdownMenuItem<String>(
+                              value: r,
+                              child: Text(r),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) => _role.value = v ?? 'Household',
+                      decoration: const InputDecoration(
+                        labelText: 'Sign up as',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 16),
-                  Obx(() => SizedBox(
-                        width: double.infinity,
-                        child: FilledButton(
-                          onPressed: _submitting.value ? null : _signup,
-                          child: _submitting.value
-                              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                              : const Text('Create account'),
-                        ),
-                      )),
+                  Obx(
+                    () => SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _submitting.value ? null : _signInWithGoogle,
+                        icon: const Icon(Icons.g_mobiledata),
+                        label: const Text('Sign up with Google'),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Obx(
+                    () => SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: _submitting.value ? null : _signup,
+                        child: _submitting.value
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text('Create account'),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: () => Get.toNamed('/login'),
-                    child: Text('Already have an account? Log in', style: theme.textTheme.bodyMedium),
-                  )
+                    child: Text(
+                      'Already have an account? Log in',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -128,5 +234,3 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 }
-
-
